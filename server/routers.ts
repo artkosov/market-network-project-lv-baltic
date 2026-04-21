@@ -1,28 +1,47 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { candidateRouter } from "./routers/candidate";
+import { employerRouter } from "./routers/employer";
+import { interviewRouter } from "./routers/interview";
+import { matchmakerRouter } from "./routers/matchmaker";
+import { sentinelRouter } from "./routers/sentinel";
+import { stripeRouter } from "./routers/stripe";
+import { seedSubscriptionPlans, getSubscriptionPlans, updateUserType } from "./db";
+import { z } from "zod";
 
 export const appRouter = router({
-    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
+
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query((opts) => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
+    setUserRole: protectedProcedure
+      .input(z.object({ role: z.enum(["candidate", "employer"]) }))
+      .mutation(async ({ ctx, input }) => {
+        await updateUserType(ctx.user.id, input.role);
+        return { success: true };
+      }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  candidate: candidateRouter,
+  employer: employerRouter,
+  interview: interviewRouter,
+  matchmaker: matchmakerRouter,
+  sentinel: sentinelRouter,
+  stripe: stripeRouter,
+  // Subscription planss
+  plans: router({
+    list: publicProcedure.query(async () => {
+      await seedSubscriptionPlans();
+      return getSubscriptionPlans();
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

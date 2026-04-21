@@ -5,31 +5,47 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import Onboarding from "./pages/Onboarding";
+import CandidateProfile from "./pages/CandidateProfile";
+import CandidateDashboard from "./pages/CandidateDashboard";
+import EmployerDashboard from "./pages/EmployerDashboard";
+import EmployerProfile from "./pages/EmployerProfile";
+import JobPostings from "./pages/JobPostings";
+import CreateJob from "./pages/CreateJob";
+import Matches from "./pages/Matches";
+import Interview from "./pages/Interview";
+import Pricing from "./pages/Pricing";
+import GdprCenter from "./pages/GdprCenter";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
+      <Route path="/" component={Home} />
+      <Route path="/onboarding" component={Onboarding} />
+      {/* Candidate routes */}
+      <Route path="/kandidats" component={CandidateDashboard} />
+      <Route path="/kandidats/profils" component={CandidateProfile} />
+      <Route path="/kandidats/atbilstibas" component={Matches} />
+      <Route path="/kandidats/gdpr" component={GdprCenter} />
+      {/* Employer routes */}
+      <Route path="/darbadevetajs" component={EmployerDashboard} />
+      <Route path="/darbadevetajs/profils" component={EmployerProfile} />
+      <Route path="/darbadevetajs/vakances" component={JobPostings} />
+      <Route path="/darbadevetajs/vakances/jauna" component={CreateJob} />
+      <Route path="/darbadevetajs/atbilstibas/:jobId" component={Matches} />
+      {/* Shared routes */}
+      <Route path="/intervija/:matchId" component={Interview} />
+      <Route path="/cenas" component={Pricing} />
+      <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <Toaster />
           <Router />
