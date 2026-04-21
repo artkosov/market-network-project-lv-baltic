@@ -153,6 +153,25 @@ export default function NavLayout({ children, userType }: NavLayoutProps) {
 
       {/* Page Content */}
       <main>{children}</main>
+
+      {/* Legal Footer */}
+      <footer className="border-t border-border/30 bg-background/50 py-4 mt-8">
+        <div className="container flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+          <span>© {new Date().getFullYear()} Market Network SIA. Visas tiesības aizsargātas.</span>
+          <div className="flex items-center gap-4">
+            <Link href="/privatuma-politika" className="hover:text-foreground transition-colors">
+              Privātuma politika
+            </Link>
+            <Link href="/lietosanas-noteikumi" className="hover:text-foreground transition-colors">
+              Lietošanas noteikumi
+            </Link>
+            <Link href="/gdpr" className="hover:text-foreground transition-colors flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
+              GDPR Centrs
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

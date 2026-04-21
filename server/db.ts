@@ -24,6 +24,20 @@ import {
   users,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
+import { encryptField, decryptField } from "./encryption";
+
+// ─── PII Field Encryption Helpers ────────────────────────────────────────────
+
+function encryptCandidatePII(data: Partial<InsertCandidateProfile>): Partial<InsertCandidateProfile> {
+  const out = { ...data };
+  if (out.fullName !== undefined) out.fullName = encryptField(out.fullName);
+  if (out.phone !== undefined) out.phone = encryptField(out.phone);
+  return out;
+}
+
+function decryptCandidatePII(row: CandidateProfile): CandidateProfile {
+  return { ...row, fullName: decryptField(row.fullName), phone: decryptField(row.phone) };
+}
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -94,24 +108,26 @@ export async function getCandidateByUserId(userId: number): Promise<CandidatePro
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(candidateProfiles).where(eq(candidateProfiles.userId, userId)).limit(1);
-  return result[0];
+  return result[0] ? decryptCandidatePII(result[0]) : undefined;
 }
 
 export async function getCandidateById(id: number): Promise<CandidateProfile | undefined> {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(candidateProfiles).where(eq(candidateProfiles.id, id)).limit(1);
-  return result[0];
+  return result[0] ? decryptCandidatePII(result[0]) : undefined;
 }
 
 export async function upsertCandidateProfile(userId: number, data: Partial<InsertCandidateProfile>): Promise<void> {
   const db = await getDb();
   if (!db) return;
-  const existing = await getCandidateByUserId(userId);
-  if (existing) {
-    await db.update(candidateProfiles).set({ ...data, updatedAt: new Date() }).where(eq(candidateProfiles.userId, userId));
+  // Encrypt PII fields before writing to database (Privacy by Design)
+  const encryptedData = encryptCandidatePII(data);
+  const existing = await db.select().from(candidateProfiles).where(eq(candidateProfiles.userId, userId)).limit(1);
+  if (existing.length > 0) {
+    await db.update(candidateProfiles).set({ ...encryptedData, updatedAt: new Date() }).where(eq(candidateProfiles.userId, userId));
   } else {
-    await db.insert(candidateProfiles).values({ userId, ...data });
+    await db.insert(candidateProfiles).values({ userId, ...encryptedData });
   }
 }
 

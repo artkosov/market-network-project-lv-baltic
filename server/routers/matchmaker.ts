@@ -101,7 +101,8 @@ export const matchmakerRouter = router({
   // Run matching for a specific candidate against all active jobs
   runForCandidate: protectedProcedure.mutation(async ({ ctx }) => {
     const candidate = await getCandidateByUserId(ctx.user.id);
-    if (!candidate || !candidate.gdprConsent) return { matched: 0 };
+    // Privacy by Design: require both GDPR base consent AND explicit matching consent
+    if (!candidate || !candidate.gdprConsent || !candidate.consentMatching) return { matched: 0, reason: "consent_required" };
 
     const jobs = await getActiveJobs();
     const db = await getDb();
@@ -145,6 +146,8 @@ export const matchmakerRouter = router({
 
       let matched = 0;
       for (const candidate of candidates) {
+        // Privacy by Design: skip candidates who have not consented to matching or employer visibility
+        if (!candidate.gdprConsent || !candidate.consentMatching) continue;
         const existing = await db.select().from(matches).where(and(eq(matches.candidateId, candidate.id), eq(matches.jobId, job.id))).limit(1);
         if (existing.length > 0) continue;
 

@@ -16,6 +16,9 @@ import Matches from "./pages/Matches";
 import Interview from "./pages/Interview";
 import Pricing from "./pages/Pricing";
 import GdprCenter from "./pages/GdprCenter";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import CookieConsent from "./components/CookieConsent";
 
 function Router() {
   return (
@@ -36,6 +39,9 @@ function Router() {
       {/* Shared routes */}
       <Route path="/intervija/:matchId" component={Interview} />
       <Route path="/cenas" component={Pricing} />
+      <Route path="/gdpr" component={GdprCenter} />
+      <Route path="/privatuma-politika" component={PrivacyPolicy} />
+      <Route path="/lietosanas-noteikumi" component={TermsOfService} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -48,6 +54,7 @@ function App() {
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <Toaster />
+          <CookieConsent />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

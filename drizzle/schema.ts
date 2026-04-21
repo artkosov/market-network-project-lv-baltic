@@ -54,9 +54,22 @@ export const candidateProfiles = mysqlTable("candidate_profiles", {
   cvParsedAt: timestamp("cvParsedAt"),
   isActive: boolean("isActive").default(true),
   isAnonymous: boolean("isAnonymous").default(true),
+  // ── GDPR Granular Consent (Privacy by Design) ──────────────────────────────
   gdprConsent: boolean("gdprConsent").default(false),
   gdprConsentAt: timestamp("gdprConsentAt"),
+  consentMatching: boolean("consentMatching").default(false),
+  consentMatchingAt: timestamp("consentMatchingAt"),
+  consentEmployerView: boolean("consentEmployerView").default(false),
+  consentEmployerViewAt: timestamp("consentEmployerViewAt"),
+  consentMarketing: boolean("consentMarketing").default(false),
+  consentMarketingAt: timestamp("consentMarketingAt"),
+  consentVersion: varchar("consentVersion", { length: 16 }).default("1.0"),
+  // ── Data Retention ────────────────────────────────────────────────────────────────────────
   gdprDeleteRequestedAt: timestamp("gdprDeleteRequestedAt"),
+  lastActivityAt: timestamp("lastActivityAt"),
+  retentionFlaggedAt: timestamp("retentionFlaggedAt"),
+  // ── Pseudonymization ──────────────────────────────────────────────────────────────────────
+  pseudonymousId: varchar("pseudonymousId", { length: 32 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -83,6 +96,14 @@ export const employerProfiles = mysqlTable("employer_profiles", {
   stripeCustomerId: varchar("stripeCustomerId", { length: 128 }),
   stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 128 }),
   subscriptionEndsAt: timestamp("subscriptionEndsAt"),
+  // ── GDPR / DPA Consent ─────────────────────────────────────────────────────────────────────────────
+  gdprConsent: boolean("gdprConsent").default(false),
+  gdprConsentAt: timestamp("gdprConsentAt"),
+  dpaAccepted: boolean("dpaAccepted").default(false),
+  dpaAcceptedAt: timestamp("dpaAcceptedAt"),
+  consentVersion: varchar("consentVersion", { length: 16 }).default("1.0"),
+  consentMarketing: boolean("consentMarketing").default(false),
+  consentMarketingAt: timestamp("consentMarketingAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

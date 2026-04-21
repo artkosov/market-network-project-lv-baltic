@@ -8,6 +8,7 @@ import { interviewRouter } from "./routers/interview";
 import { matchmakerRouter } from "./routers/matchmaker";
 import { sentinelRouter } from "./routers/sentinel";
 import { stripeRouter } from "./routers/stripe";
+import { gdprRouter } from "./routers/gdpr";
 import { seedSubscriptionPlans, getSubscriptionPlans, updateUserType } from "./db";
 import { z } from "zod";
 
@@ -35,6 +36,7 @@ export const appRouter = router({
   matchmaker: matchmakerRouter,
   sentinel: sentinelRouter,
   stripe: stripeRouter,
+  gdpr: gdprRouter,
   // Subscription planss
   plans: router({
     list: publicProcedure.query(async () => {
