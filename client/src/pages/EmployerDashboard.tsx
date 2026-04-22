@@ -13,13 +13,7 @@ import {
   Search, Zap, Crown, CreditCard, CheckCircle2, Clock
 } from "lucide-react";
 import { toast } from "sonner";
-
-const TIER_LABELS: Record<string, string> = {
-  starter: "Sākuma plāns",
-  professional: "Profesionālais plāns",
-  enterprise: "Uzņēmuma plāns",
-  free: "Bezmaksas",
-};
+import { useTranslation } from "react-i18next";
 
 const TIER_COLORS: Record<string, string> = {
   starter: "bg-blue-500/10 text-blue-400 border-blue-500/20",
@@ -35,6 +29,14 @@ export default function EmployerDashboard() {
   const { data: jobs } = trpc.employer.getJobs.useQuery(undefined, { enabled: isAuthenticated });
   const { data: subscription } = trpc.stripe.getSubscriptionStatus.useQuery(undefined, { enabled: isAuthenticated });
   const scrape = trpc.sentinel.scrape.useMutation();
+  const { t } = useTranslation();
+
+  const TIER_LABELS: Record<string, string> = {
+    starter: t("pricing.starterName", { defaultValue: "Sākuma plāns" }),
+    professional: t("pricing.professionalName", { defaultValue: "Profesionālais plāns" }),
+    enterprise: t("pricing.enterpriseName", { defaultValue: "Uzņēmuma plāns" }),
+    free: t("pricing.free"),
+  };
 
   useEffect(() => {
     if (isAuthenticated && profile !== undefined && profile === null) navigate("/onboarding");
@@ -43,8 +45,8 @@ export default function EmployerDashboard() {
   if (!isAuthenticated) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center">
-        <h2 className="text-xl font-semibold mb-4">Lūdzu pieslēdzieties</h2>
-        <Button asChild><a href={getLoginUrl()}>Pieslēgties</a></Button>
+        <h2 className="text-xl font-semibold mb-4">{t("common.loading")}</h2>
+        <Button asChild><a href={getLoginUrl()}>{t("nav.login")}</a></Button>
       </div>
     </div>
   );
@@ -56,8 +58,8 @@ export default function EmployerDashboard() {
 
   const handleScrape = async (platform: "cv.lv" | "ss.lv" | "linkedin") => {
     const result = await scrape.mutateAsync({ platform, city: "Rīga" });
-    if (result.success) toast.success(`${platform}: importētas ${result.imported} jaunas vakances`);
-    else toast.error("Skrāpēšana neizdevās");
+    if (result.success) toast.success(`${platform}: ${t("employerDashboard.importedVacancies", { defaultValue: "importētas" })} ${result.imported} ${t("employerDashboard.newVacancies", { defaultValue: "jaunas vakances" })}`);
+    else toast.error(t("employerDashboard.scrapeError", { defaultValue: "Skrāpēšana neizdevās" }));
   };
 
   return (
@@ -66,23 +68,23 @@ export default function EmployerDashboard() {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-1">{profile?.companyName ?? "Mans Uzņēmums"}</h1>
-            <p className="text-muted-foreground">Darba devēja panelis</p>
+            <h1 className="text-3xl font-bold mb-1">{profile?.companyName ?? t("employerDashboard.myCompany", { defaultValue: "Mans Uzņēmums" })}</h1>
+            <p className="text-muted-foreground">{t("employerDashboard.title")}</p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             {/* Subscription badge */}
             <Badge className={`gap-1.5 px-3 py-1.5 text-xs font-medium ${TIER_COLORS[currentTier] ?? TIER_COLORS.free}`}>
               <Crown className="w-3 h-3" />
-              {TIER_LABELS[currentTier] ?? "Bezmaksas"}
+              {TIER_LABELS[currentTier] ?? t("pricing.free")}
               {isSubscribed && <CheckCircle2 className="w-3 h-3 ml-0.5" />}
             </Badge>
             {!isSubscribed && (
               <Button variant="outline" size="sm" asChild className="gap-1.5 text-primary border-primary/30 hover:bg-primary/5">
-                <Link href="/cenas"><CreditCard className="w-3 h-3" />Uzlabot plānu</Link>
+                <Link href="/cenas"><CreditCard className="w-3 h-3" />{t("employerDashboard.upgradePlan", { defaultValue: "Uzlabot plānu" })}</Link>
               </Button>
             )}
             <Button asChild className="bg-primary text-primary-foreground">
-              <Link href="/darbadevetajs/vakances/jauna"><Plus className="w-4 h-4 mr-2" />Jauna vakance</Link>
+              <Link href="/darbadevetajs/vakances/jauna"><Plus className="w-4 h-4 mr-2" />{t("employerDashboard.newVacancy", { defaultValue: "Jauna vakance" })}</Link>
             </Button>
           </div>
         </div>
@@ -96,12 +98,12 @@ export default function EmployerDashboard() {
                   <Crown className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm">Paplašini iespējas ar Pro plānu</p>
-                  <p className="text-xs text-muted-foreground">Neierobežotas vakances, AI kandidātu meklēšana, prioritāra atbilstību apstrāde</p>
+                  <p className="font-semibold text-sm">{t("employerDashboard.upgradeTitle", { defaultValue: "Paplašini iespējas ar Pro plānu" })}</p>
+                  <p className="text-xs text-muted-foreground">{t("employerDashboard.upgradeDesc", { defaultValue: "Neierobežotas vakances, AI kandidātu meklēšana, prioritāra atbilstību apstrāde" })}</p>
                 </div>
               </div>
               <Button size="sm" asChild className="flex-shrink-0 bg-primary text-primary-foreground">
-                <Link href="/cenas">Skatīt plānus <ArrowRight className="w-3 h-3 ml-1" /></Link>
+                <Link href="/cenas">{t("employerDashboard.viewPlans", { defaultValue: "Skatīt plānus" })} <ArrowRight className="w-3 h-3 ml-1" /></Link>
               </Button>
             </CardContent>
           </Card>
@@ -110,10 +112,10 @@ export default function EmployerDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { icon: <BriefcaseIcon className="w-5 h-5" />, value: activeJobs.length, label: "Aktīvas vakances" },
-            { icon: <Users className="w-5 h-5" />, value: totalMatches, label: "Kopā atbilstības" },
-            { icon: <Eye className="w-5 h-5" />, value: (jobs ?? []).filter((j: any) => j.status === "active").length, label: "Atvērti profili" },
-            { icon: <TrendingUp className="w-5 h-5" />, value: "94%", label: "Atbilstības precizitāte" },
+            { icon: <BriefcaseIcon className="w-5 h-5" />, value: activeJobs.length, label: t("employerDashboard.activeJobs") },
+            { icon: <Users className="w-5 h-5" />, value: totalMatches, label: t("employerDashboard.totalMatches") },
+            { icon: <Eye className="w-5 h-5" />, value: (jobs ?? []).filter((j: any) => j.status === "active").length, label: t("employerDashboard.openProfiles", { defaultValue: "Atvērti profili" }) },
+            { icon: <TrendingUp className="w-5 h-5" />, value: "94%", label: t("home.matchAccuracy") },
           ].map((stat, i) => (
             <Card key={i} className="glass-card">
               <CardContent className="p-4">
@@ -135,11 +137,11 @@ export default function EmployerDashboard() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Search className="w-4 h-4 text-primary" />
-                Darba Sentinel
+                {t("employerDashboard.sentinelTitle", { defaultValue: "Darba Sentinel" })}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground mb-4">Importē vakances no Latvijas darba platformām</p>
+              <p className="text-xs text-muted-foreground mb-4">{t("employerDashboard.sentinelDesc", { defaultValue: "Importē vakances no Latvijas darba platformām" })}</p>
               <div className="space-y-2">
                 {(["cv.lv", "ss.lv", "linkedin"] as const).map(platform => (
                   <Button
@@ -160,7 +162,7 @@ export default function EmployerDashboard() {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
-                Sentinel filtrē pēc pilsētas, algas un prasmēm, automātiski importējot atbilstošas vakances.
+                {t("employerDashboard.sentinelNote", { defaultValue: "Sentinel filtrē pēc pilsētas, algas un prasmēm, automātiski importējot atbilstošas vakances." })}
               </p>
             </CardContent>
           </Card>
@@ -170,10 +172,10 @@ export default function EmployerDashboard() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
                 <BriefcaseIcon className="w-4 h-4" />
-                Aktīvas vakances
+                {t("employerDashboard.activeJobsTitle", { defaultValue: "Aktīvas vakances" })}
               </CardTitle>
               <Button asChild variant="ghost" size="sm">
-                <Link href="/darbadevetajs/vakances">Visas <ArrowRight className="w-3 h-3 ml-1" /></Link>
+                <Link href="/darbadevetajs/vakances">{t("candidateDashboard.viewAll")} <ArrowRight className="w-3 h-3 ml-1" /></Link>
               </Button>
             </CardHeader>
             <CardContent>
@@ -184,15 +186,15 @@ export default function EmployerDashboard() {
                       <div>
                         <p className="font-medium text-sm">{job.title}</p>
                         <p className="text-xs text-muted-foreground">
-                          {job.city ?? "Latvija"} · {job.jobType === "full_time" ? "Pilna slodze" : job.jobType === "part_time" ? "Nepilna slodze" : job.jobType}
+                          {job.city ?? "Latvija"} · {job.jobType === "full_time" ? t("employerDashboard.fullTime", { defaultValue: "Pilna slodze" }) : job.jobType === "part_time" ? t("employerDashboard.partTime", { defaultValue: "Nepilna slodze" }) : job.jobType}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs">
-                          {job.source === "scraped" ? "Importēts" : "Manuāls"}
+                          {job.source === "scraped" ? t("employerDashboard.imported", { defaultValue: "Importēts" }) : t("employerDashboard.manual", { defaultValue: "Manuāls" })}
                         </Badge>
                         <Button asChild size="sm" variant="outline" className="h-7 text-xs">
-                          <Link href={`/darbadevetajs/atbilstibas/${job.id}`}>Kandidāti</Link>
+                          <Link href={`/darbadevetajs/atbilstibas/${job.id}`}>{t("employerDashboard.candidates", { defaultValue: "Kandidāti" })}</Link>
                         </Button>
                       </div>
                     </div>
@@ -201,9 +203,9 @@ export default function EmployerDashboard() {
               ) : (
                 <div className="text-center py-8">
                   <BriefcaseIcon className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground mb-3">Nav aktīvu vacanču</p>
+                  <p className="text-sm text-muted-foreground mb-3">{t("employerDashboard.noJobs")}</p>
                   <Button asChild size="sm">
-                    <Link href="/darbadevetajs/vakances/jauna">Pievienot vakanci</Link>
+                    <Link href="/darbadevetajs/vakances/jauna">{t("employerDashboard.addVacancy", { defaultValue: "Pievienot vakanci" })}</Link>
                   </Button>
                 </div>
               )}

@@ -8,12 +8,15 @@ import { useLocation, Link } from "wouter";
 import { useState } from "react";
 import { toast } from "sonner";
 import { User, Building2, ArrowRight, Sparkles, Shield, CheckCircle2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function Onboarding() {
   const { isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const [selected, setSelected] = useState<"candidate" | "employer" | null>(null);
   const [saving, setSaving] = useState(false);
+  const { t } = useTranslation();
 
   // Granular GDPR consent state
   const [consentTerms, setConsentTerms] = useState(false);
@@ -30,8 +33,8 @@ export default function Onboarding() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-4">Lūdzu pieslēdzieties</h2>
-          <Button asChild><a href={getLoginUrl()}>Pieslēgties</a></Button>
+          <h2 className="text-xl font-semibold mb-4">{t("onboarding.pleaseLogin", { defaultValue: "Lūdzu pieslēdzieties" })}</h2>
+          <Button asChild><a href={getLoginUrl()}>{t("nav.login")}</a></Button>
         </div>
       </div>
     );
@@ -40,8 +43,8 @@ export default function Onboarding() {
   const requiredConsents = consentTerms && consentPrivacy && consentPlatform;
 
   const handleContinue = async () => {
-    if (!selected) { toast.error("Lūdzu izvēlieties lomu"); return; }
-    if (!requiredConsents) { toast.error("Lūdzu apstipriniet visas obligātās piekrišanas"); return; }
+    if (!selected) { toast.error(t("onboarding.selectRole", { defaultValue: "Lūdzu izvēlieties lomu" })); return; }
+    if (!requiredConsents) { toast.error(t("onboarding.acceptRequired", { defaultValue: "Lūdzu apstipriniet visas obligātās piekrišanas" })); return; }
     setSaving(true);
     try {
       await setRole.mutateAsync({ role: selected });
@@ -61,12 +64,42 @@ export default function Onboarding() {
         });
         navigate("/darbadevetajs/profils");
       }
-    } catch { toast.error("Kļūda saglabājot piekrišanas"); }
+    } catch { toast.error(t("onboarding.saveError", { defaultValue: "Kļūda saglabājot piekrišanas" })); }
     finally { setSaving(false); }
   };
 
+  const roleOptions = [
+    {
+      type: "candidate" as const,
+      icon: <User className="w-8 h-8" />,
+      title: t("onboarding.candidateTitle", { defaultValue: "Es meklēju darbu" }),
+      subtitle: t("onboarding.candidate"),
+      desc: t("onboarding.candidateFullDesc", { defaultValue: "Atrodi savu ideālo darbu ar AI palīdzību. Mūsu sistēma automātiski saskaņo tevi ar labākajām vakancēm." }),
+      features: t("onboarding.candidateFeatures", {
+        returnObjects: true,
+        defaultValue: ["AI profila saskaņošana", "Anonīmais profils", "Automātiski paziņojumi", "AI intervija"]
+      }) as string[],
+    },
+    {
+      type: "employer" as const,
+      icon: <Building2 className="w-8 h-8" />,
+      title: t("onboarding.employerTitle", { defaultValue: "Es meklēju darbiniekus" }),
+      subtitle: t("onboarding.employer"),
+      desc: t("onboarding.employerFullDesc", { defaultValue: "Atrod ideālos kandidātus bez manuālas CV šķirošanas. AI automātiski filtrē un saskaņo." }),
+      features: t("onboarding.employerFeatures", {
+        returnObjects: true,
+        defaultValue: ["AI CV parsēšana", "Automātiska saskaņošana", "Anonīmie profili", "AI pirmā intervija"]
+      }) as string[],
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      {/* Language switcher top right */}
+      <div className="fixed top-4 right-4">
+        <LanguageSwitcher />
+      </div>
+
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-10">
@@ -76,30 +109,13 @@ export default function Onboarding() {
             </div>
             <span className="text-xl font-bold">Market Network</span>
           </div>
-          <h1 className="text-4xl font-bold mb-3">Laipni lūgti!</h1>
-          <p className="text-muted-foreground text-lg">Kā jūs vēlaties izmantot platformu?</p>
+          <h1 className="text-4xl font-bold mb-3">{t("onboarding.title")}</h1>
+          <p className="text-muted-foreground text-lg">{t("onboarding.desc")}</p>
         </div>
 
         {/* Role cards */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {[
-            {
-              type: "candidate" as const,
-              icon: <User className="w-8 h-8" />,
-              title: "Es meklēju darbu",
-              subtitle: "Kandidāts",
-              desc: "Atrodi savu ideālo darbu ar AI palīdzību. Mūsu sistēma automātiski saskaņo tevi ar labākajām vakancēm.",
-              features: ["AI profila saskaņošana", "Anonīmais profils", "Automātiski paziņojumi", "AI intervija"],
-            },
-            {
-              type: "employer" as const,
-              icon: <Building2 className="w-8 h-8" />,
-              title: "Es meklēju darbiniekus",
-              subtitle: "Darba devējs",
-              desc: "Atrod ideālos kandidātus bez manuālas CV šķirošanas. AI automātiski filtrē un saskaņo.",
-              features: ["AI CV parsēšana", "Automātiska saskaņošana", "Anonīmie profili", "AI pirmā intervija"],
-            },
-          ].map(opt => (
+          {roleOptions.map(opt => (
             <Card
               key={opt.type}
               className={`glass-card cursor-pointer transition-all duration-200 hover:border-primary/40 ${
@@ -136,7 +152,7 @@ export default function Onboarding() {
           <CardContent className="p-5">
             <div className="flex items-center gap-2 mb-5">
               <Shield className="w-4 h-4 text-primary" />
-              <p className="font-semibold text-sm">Piekrišanas un privātuma iestatījumi</p>
+              <p className="font-semibold text-sm">{t("onboarding.consentsTitle", { defaultValue: "Piekrišanas un privātuma iestatījumi" })}</p>
             </div>
 
             <div className="space-y-4">
@@ -147,9 +163,9 @@ export default function Onboarding() {
                 onChange={setConsentTerms}
                 required
               >
-                Esmu izlasījis un piekrītu{" "}
+                {t("onboarding.consentTerms1", { defaultValue: "Esmu izlasījis un piekrītu" })}{" "}
                 <Link href="/lietosanas-noteikumi" className="text-primary underline" target="_blank">
-                  Lietošanas noteikumiem
+                  {t("footer.termsOfService")}
                 </Link>{" "}*
               </ConsentRow>
 
@@ -159,11 +175,11 @@ export default function Onboarding() {
                 onChange={setConsentPrivacy}
                 required
               >
-                Esmu izlasījis un piekrītu{" "}
+                {t("onboarding.consentPrivacy1", { defaultValue: "Esmu izlasījis un piekrītu" })}{" "}
                 <Link href="/privatuma-politika" className="text-primary underline" target="_blank">
-                  Privātuma politikai
+                  {t("footer.privacyPolicy")}
                 </Link>{" "}
-                un personas datu apstrādei *
+                {t("onboarding.consentPrivacy2", { defaultValue: "un personas datu apstrādei" })} *
               </ConsentRow>
 
               <ConsentRow
@@ -172,12 +188,12 @@ export default function Onboarding() {
                 onChange={setConsentPlatform}
                 required
               >
-                Piekrītu savu personas datu apstrādei platformas darbībai (VDAR 6(1)(b)) *
+                {t("onboarding.consentPlatform", { defaultValue: "Piekrītu savu personas datu apstrādei platformas darbībai (VDAR 6(1)(b))" })} *
               </ConsentRow>
 
               {/* Divider */}
               <div className="border-t border-border/30 pt-4">
-                <p className="text-xs text-muted-foreground font-medium mb-3">Izvēles piekrišanas (nav obligātas):</p>
+                <p className="text-xs text-muted-foreground font-medium mb-3">{t("onboarding.optionalConsents", { defaultValue: "Izvēles piekrišanas (nav obligātas):" })}</p>
 
                 <div className="space-y-4">
                   <ConsentRow
@@ -185,8 +201,7 @@ export default function Onboarding() {
                     checked={consentMatching}
                     onChange={setConsentMatching}
                   >
-                    Piekrītu AI atbilstību meklēšanai — ļauj mūsu AI analizēt manu profilu un saskaņot ar
-                    vakancēm{selected === "candidate" && " un rādīt manu anonīmo profilu darba devējiem"} (VDAR 6(1)(a))
+                    {t("onboarding.consentMatching", { defaultValue: "Piekrītu AI atbilstību meklēšanai" })}{selected === "candidate" && t("onboarding.consentMatchingCandidate", { defaultValue: " un rādīt manu anonīmo profilu darba devējiem" })} {t("onboarding.consentMatchingGdpr", { defaultValue: "(VDAR 6(1)(a))" })}
                   </ConsentRow>
 
                   <ConsentRow
@@ -194,14 +209,14 @@ export default function Onboarding() {
                     checked={consentMarketing}
                     onChange={setConsentMarketing}
                   >
-                    Piekrītu mārketinga e-pastu saņemšanai par jaunumiem un darba tirgus ieskatiem (VDAR 6(1)(a))
+                    {t("onboarding.consentMarketing", { defaultValue: "Piekrītu mārketinga e-pastu saņemšanai par jaunumiem un darba tirgus ieskatiem (VDAR 6(1)(a))" })}
                   </ConsentRow>
                 </div>
               </div>
 
               <p className="text-xs text-muted-foreground pt-1">
-                * Obligātas piekrišanas. Jūs varat jebkurā laikā mainīt izvēles piekrišanas{" "}
-                <Link href="/gdpr" className="text-primary underline">GDPR Centrā</Link>.
+                {t("onboarding.requiredNote", { defaultValue: "* Obligātas piekrišanas. Jūs varat jebkurā laikā mainīt izvēles piekrišanas" })}{" "}
+                <Link href="/gdpr" className="text-primary underline">{t("nav.gdpr")} {t("onboarding.center", { defaultValue: "Centrā" })}</Link>.
               </p>
             </div>
           </CardContent>
@@ -213,14 +228,14 @@ export default function Onboarding() {
           disabled={!selected || saving || !requiredConsents}
           className="w-full bg-primary text-primary-foreground py-6 text-base font-semibold disabled:opacity-40"
         >
-          {saving ? "Apstrādā..." : "Turpināt"}
+          {saving ? t("onboarding.processing", { defaultValue: "Apstrādā..." }) : t("onboarding.continue")}
           {!saving && <ArrowRight className="w-5 h-5 ml-2" />}
         </Button>
 
         {/* Status indicators */}
         <div className="flex items-center justify-center gap-6 mt-4">
-          <StatusDot ok={!!selected} label="Loma izvēlēta" />
-          <StatusDot ok={requiredConsents} label="Obligātās piekrišanas" />
+          <StatusDot ok={!!selected} label={t("onboarding.roleSelected", { defaultValue: "Loma izvēlēta" })} />
+          <StatusDot ok={requiredConsents} label={t("onboarding.requiredConsents", { defaultValue: "Obligātās piekrišanas" })} />
         </div>
       </div>
     </div>

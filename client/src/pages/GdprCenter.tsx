@@ -14,17 +14,7 @@ import {
 import { toast } from "sonner";
 import { useState } from "react";
 import { Link } from "wouter";
-
-const ACTION_LABELS: Record<string, string> = {
-  consent_given: "Piekrišana dota",
-  consent_withdrawn: "Piekrišana atsaukta",
-  data_export_requested: "Datu eksports pieprasīts",
-  data_deletion_requested: "Datu dzēšana pieprasīta",
-  data_deleted: "Dati dzēsti",
-  profile_unlocked: "Profils atklāts darba devējam",
-  profile_viewed: "Profils apskatīts",
-  data_accessed: "Dati piekļūti",
-};
+import { useTranslation } from "react-i18next";
 
 const ACTION_COLORS: Record<string, string> = {
   consent_given: "text-green-400",
@@ -40,6 +30,18 @@ const ACTION_COLORS: Record<string, string> = {
 export default function GdprCenter() {
   const { isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
+  const { t } = useTranslation();
+
+  const ACTION_LABELS: Record<string, string> = {
+    consent_given: t("gdpr.consentGiven", { defaultValue: "Piekrišana dota" }),
+    consent_withdrawn: t("gdpr.consentWithdrawn", { defaultValue: "Piekrišana atsaukta" }),
+    data_export_requested: t("gdpr.dataExportRequested", { defaultValue: "Datu eksports pieprasīts" }),
+    data_deletion_requested: t("gdpr.dataDeletionRequested", { defaultValue: "Datu dzēšana pieprasīta" }),
+    data_deleted: t("gdpr.dataDeleted", { defaultValue: "Dati dzēsti" }),
+    profile_unlocked: t("gdpr.profileUnlocked", { defaultValue: "Profils atklāts darba devējam" }),
+    profile_viewed: t("gdpr.profileViewed", { defaultValue: "Profils apskatīts" }),
+    data_accessed: t("gdpr.dataAccessed", { defaultValue: "Dati piekļūti" }),
+  };
 
   const { data: consentStatus, isLoading: consentLoading } = trpc.gdpr.getConsentStatus.useQuery(
     undefined, { enabled: isAuthenticated }
@@ -65,7 +67,7 @@ export default function GdprCenter() {
   const requestDeletion = trpc.gdpr.requestDataDeletion.useMutation({
     onSuccess: () => {
       utils.gdpr.getConsentStatus.invalidate();
-      toast.success("Datu dzēšanas pieprasījums nosūtīts. Jūsu dati tiks dzēsti 30 dienu laikā.");
+      toast.success(t("gdpr.deletionRequested", { defaultValue: "Datu dzēšanas pieprasījums nosūtīts. Jūsu dati tiks dzēsti 30 dienu laikā." }));
     },
   });
 
@@ -74,18 +76,18 @@ export default function GdprCenter() {
   const handleCandidateToggle = async (field: "platform" | "matching" | "employerView" | "marketing", value: boolean) => {
     try {
       await updateCandidateConsent.mutateAsync({ [field]: value });
-      toast.success(value ? "Piekrišana dota" : "Piekrišana atsaukta");
+      toast.success(value ? t("gdpr.granted") : t("gdpr.revoked"));
     } catch {
-      toast.error("Kļūda atjaunojot piekrišanu");
+      toast.error(t("gdpr.updateError", { defaultValue: "Kļūda atjaunojot piekrišanu" }));
     }
   };
 
   const handleEmployerToggle = async (field: "platform" | "dpaAccepted" | "marketing", value: boolean) => {
     try {
       await updateEmployerConsent.mutateAsync({ [field]: value });
-      toast.success(value ? "Piekrišana dota" : "Piekrišana atsaukta");
+      toast.success(value ? t("gdpr.granted") : t("gdpr.revoked"));
     } catch {
-      toast.error("Kļūda atjaunojot piekrišanu");
+      toast.error(t("gdpr.updateError", { defaultValue: "Kļūda atjaunojot piekrišanu" }));
     }
   };
 
@@ -99,7 +101,7 @@ export default function GdprCenter() {
       a.download = `market-network-mani-dati-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("Datu eksports lejupielādēts");
+      toast.success(t("gdpr.exportSuccess", { defaultValue: "Datu eksports lejupielādēts" }));
     }
   };
 
@@ -111,7 +113,7 @@ export default function GdprCenter() {
     try {
       await requestDeletion.mutateAsync();
     } catch {
-      toast.error("Kļūda nosūtot pieprasījumu");
+      toast.error(t("gdpr.requestError", { defaultValue: "Kļūda nosūtot pieprasījumu" }));
     } finally {
       setDeletionConfirm(false);
     }
@@ -129,19 +131,19 @@ export default function GdprCenter() {
               <Shield className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">GDPR Privātuma centrs</h1>
-              <p className="text-muted-foreground text-sm">Pārvaldi savus datus un piekrišanas</p>
+              <h1 className="text-3xl font-bold">{t("gdpr.title")}</h1>
+              <p className="text-muted-foreground text-sm">{t("gdpr.desc")}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 p-3 rounded-xl bg-primary/5 border border-primary/10">
             <Info className="w-4 h-4 text-primary flex-shrink-0" />
             <p className="text-xs text-muted-foreground">
-              Saskaņā ar ES Vispārīgo datu aizsardzības regulu (VDAR/GDPR), jums ir tiesības kontrolēt savus personas datus.
-              Politikas versija: <strong className="text-foreground">v{consentStatus?.consentVersion ?? "1.0"}</strong>.
-              Skatīt:{" "}
-              <Link href="/privatuma-politika" className="text-primary underline">Privātuma politiku</Link>
-              {" "}un{" "}
-              <Link href="/lietosanas-noteikumi" className="text-primary underline">Lietošanas noteikumus</Link>.
+              {t("gdpr.gdprInfo", { defaultValue: "Saskaņā ar ES Vispārīgo datu aizsardzības regulu (VDAR/GDPR), jums ir tiesības kontrolēt savus personas datus." })}{" "}
+              {t("gdpr.policyVersion", { defaultValue: "Politikas versija:" })} <strong className="text-foreground">v{consentStatus?.consentVersion ?? "1.0"}</strong>.{" "}
+              {t("gdpr.viewPolicy", { defaultValue: "Skatīt:" })}{" "}
+              <Link href="/privatuma-politika" className="text-primary underline">{t("footer.privacyPolicy")}</Link>
+              {" "}{t("gdpr.and", { defaultValue: "un" })}{" "}
+              <Link href="/lietosanas-noteikumi" className="text-primary underline">{t("footer.termsOfService")}</Link>.
             </p>
           </div>
         </div>
@@ -152,19 +154,20 @@ export default function GdprCenter() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Lock className="w-4 h-4 text-primary" />
-                  Piekrišanas pārvaldība — Kandidāts
+                  {t("gdpr.candidateConsents", { defaultValue: "Piekrišanas pārvaldība — Kandidāts" })}
                 </CardTitle>
                 <CardDescription>
-                  Katra piekrišana ir neatkarīga. Jūs varat to atsaukt jebkurā laikā.
+                  {t("gdpr.consentsDesc", { defaultValue: "Katra piekrišana ir neatkarīga. Jūs varat to atsaukt jebkurā laikā." })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-0">
                 <ConsentRow
                   icon={<Shield className="w-4 h-4" />}
-                  title="Platformas izmantošana"
-                  description="Nepieciešams, lai izmantotu Market Network. Bez šīs piekrišanas konts tiek deaktivizēts."
+                  title={t("gdpr.platformUsage")}
+                  description={t("gdpr.platformUsageDesc", { defaultValue: "Nepieciešams, lai izmantotu Market Network. Bez šīs piekrišanas konts tiek deaktivizēts." })}
                   value={consentStatus?.platform ?? false}
                   required
+                  requiredLabel={t("gdpr.required", { defaultValue: "Obligāts" })}
                   onChange={(v) => handleCandidateToggle("platform", v)}
                   loading={updateCandidateConsent.isPending}
                   grantedAt={consentStatus?.platformAt}
@@ -172,8 +175,8 @@ export default function GdprCenter() {
                 <Separator className="my-0 opacity-30" />
                 <ConsentRow
                   icon={<Brain className="w-4 h-4" />}
-                  title="AI atbilstību meklēšana"
-                  description="Ļauj mūsu AI analizēt jūsu profilu un saskaņot ar vakancēm. Bez šīs piekrišanas atbilstības netiek aprēķinātas."
+                  title={t("gdpr.aiMatching")}
+                  description={t("gdpr.aiMatchingDesc", { defaultValue: "Ļauj mūsu AI analizēt jūsu profilu un saskaņot ar vakancēm. Bez šīs piekrišanas atbilstības netiek aprēķinātas." })}
                   value={consentStatus?.matching ?? false}
                   onChange={(v) => handleCandidateToggle("matching", v)}
                   loading={updateCandidateConsent.isPending}
@@ -182,20 +185,20 @@ export default function GdprCenter() {
                 <Separator className="my-0 opacity-30" />
                 <ConsentRow
                   icon={<Users className="w-4 h-4" />}
-                  title="Anonīms profils darba devējiem"
-                  description="Ļauj darba devējiem redzēt jūsu anonīmo profilu (prasmes, pieredze, algas vēlmes). Jūsu identitāte paliek slēpta līdz jūs to atklājat."
+                  title={t("gdpr.profileVisibility")}
+                  description={t("gdpr.profileVisibilityDesc", { defaultValue: "Ļauj darba devējiem redzēt jūsu anonīmo profilu (prasmes, pieredze, algas vēlmes). Jūsu identitāte paliek slēpta līdz jūs to atklājat." })}
                   value={consentStatus?.employerView ?? false}
                   onChange={(v) => handleCandidateToggle("employerView", v)}
                   loading={updateCandidateConsent.isPending}
                   disabled={!(consentStatus?.matching ?? false)}
-                  disabledReason="Nepieciešama AI atbilstību meklēšanas piekrišana"
+                  disabledReason={t("gdpr.requiresAiConsent", { defaultValue: "Nepieciešama AI atbilstību meklēšanas piekrišana" })}
                   grantedAt={consentStatus?.employerViewAt}
                 />
                 <Separator className="my-0 opacity-30" />
                 <ConsentRow
                   icon={<Mail className="w-4 h-4" />}
-                  title="Mārketinga paziņojumi"
-                  description="Saņemt e-pastus par jaunām funkcijām, darba tirgus ieskatiem un platformas jaunumiem. Nav obligāts."
+                  title={t("gdpr.marketing")}
+                  description={t("gdpr.marketingDesc", { defaultValue: "Saņemt e-pastus par jaunām funkcijām, darba tirgus ieskatiem un platformas jaunumiem. Nav obligāts." })}
                   value={consentStatus?.marketing ?? false}
                   onChange={(v) => handleCandidateToggle("marketing", v)}
                   loading={updateCandidateConsent.isPending}
@@ -210,19 +213,20 @@ export default function GdprCenter() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Lock className="w-4 h-4 text-primary" />
-                  Piekrišanas pārvaldība — Darba devējs
+                  {t("gdpr.employerConsents", { defaultValue: "Piekrišanas pārvaldība — Darba devējs" })}
                 </CardTitle>
                 <CardDescription>
-                  Darba devēja piekrišanas un datu apstrādes līgums (DPA).
+                  {t("gdpr.employerConsentsDesc", { defaultValue: "Darba devēja piekrišanas un datu apstrādes līgums (DPA)." })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-0">
                 <ConsentRow
                   icon={<Shield className="w-4 h-4" />}
-                  title="Platformas lietošanas noteikumi"
-                  description="Piekrišana Market Network lietošanas noteikumiem un privātuma politikai."
+                  title={t("gdpr.platformTerms", { defaultValue: "Platformas lietošanas noteikumi" })}
+                  description={t("gdpr.platformTermsDesc", { defaultValue: "Piekrišana Market Network lietošanas noteikumiem un privātuma politikai." })}
                   value={consentStatus?.platform ?? false}
                   required
+                  requiredLabel={t("gdpr.required", { defaultValue: "Obligāts" })}
                   onChange={(v) => handleEmployerToggle("platform", v)}
                   loading={updateEmployerConsent.isPending}
                   grantedAt={consentStatus?.platformAt}
@@ -230,10 +234,11 @@ export default function GdprCenter() {
                 <Separator className="my-0 opacity-30" />
                 <ConsentRow
                   icon={<FileText className="w-4 h-4" />}
-                  title="Datu apstrādes līgums (DPA)"
-                  description="Saskaņā ar VDAR 28. pantu, kā datu apstrādātājs mēs apstrādājam kandidātu datus jūsu vārdā. DPA piekrišana ir obligāta AI atbilstību funkcijām."
+                  title={t("gdpr.dpa", { defaultValue: "Datu apstrādes līgums (DPA)" })}
+                  description={t("gdpr.dpaDesc", { defaultValue: "Saskaņā ar VDAR 28. pantu, kā datu apstrādātājs mēs apstrādājam kandidātu datus jūsu vārdā. DPA piekrišana ir obligāta AI atbilstību funkcijām." })}
                   value={(consentStatus as any)?.dpaAccepted ?? false}
                   required
+                  requiredLabel={t("gdpr.required", { defaultValue: "Obligāts" })}
                   onChange={(v) => handleEmployerToggle("dpaAccepted", v)}
                   loading={updateEmployerConsent.isPending}
                   grantedAt={(consentStatus as any)?.dpaAcceptedAt}
@@ -241,8 +246,8 @@ export default function GdprCenter() {
                 <Separator className="my-0 opacity-30" />
                 <ConsentRow
                   icon={<Mail className="w-4 h-4" />}
-                  title="Mārketinga paziņojumi"
-                  description="Saņemt e-pastus par jaunām funkcijām, darba tirgus ieskatiem un platformas jaunumiem."
+                  title={t("gdpr.marketing")}
+                  description={t("gdpr.marketingDesc", { defaultValue: "Saņemt e-pastus par jaunām funkcijām, darba tirgus ieskatiem un platformas jaunumiem." })}
                   value={consentStatus?.marketing ?? false}
                   onChange={(v) => handleEmployerToggle("marketing", v)}
                   loading={updateEmployerConsent.isPending}
@@ -256,21 +261,21 @@ export default function GdprCenter() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Eye className="w-4 h-4 text-primary" />
-                Jūsu VDAR tiesības
+                {t("gdpr.yourRights", { defaultValue: "Jūsu VDAR tiesības" })}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <RightRow
                 icon={<Eye className="w-4 h-4" />}
-                article="VDAR 15. pants"
-                title="Piekļuves tiesības"
-                desc="Jums ir tiesības apskatīt visus savus datus, ko mēs glabājam."
+                article={t("gdpr.article15", { defaultValue: "VDAR 15. pants" })}
+                title={t("gdpr.accessRight", { defaultValue: "Piekļuves tiesības" })}
+                desc={t("gdpr.accessRightDesc", { defaultValue: "Jums ir tiesības apskatīt visus savus datus, ko mēs glabājam." })}
               />
               <RightRow
                 icon={<Download className="w-4 h-4" />}
-                article="VDAR 20. pants"
-                title="Datu pārnesamība"
-                desc="Varat lejupielādēt visus savus datus mašīnlasāmā JSON formātā."
+                article={t("gdpr.article20", { defaultValue: "VDAR 20. pants" })}
+                title={t("gdpr.portabilityRight", { defaultValue: "Datu pārnesamība" })}
+                desc={t("gdpr.portabilityRightDesc", { defaultValue: "Varat lejupielādēt visus savus datus mašīnlasāmā JSON formātā." })}
                 action={
                   <Button
                     size="sm"
@@ -280,19 +285,21 @@ export default function GdprCenter() {
                     disabled={exportLoading}
                   >
                     <Download className="w-3 h-3" />
-                    {exportLoading ? "Gatavo..." : "Eksportēt"}
+                    {exportLoading
+                      ? t("gdpr.preparing", { defaultValue: "Gatavo..." })
+                      : t("gdpr.exportData")}
                   </Button>
                 }
               />
               <RightRow
                 icon={<FileText className="w-4 h-4" />}
-                article="VDAR 16. pants"
-                title="Labošanas tiesības"
-                desc="Varat labot neprecīzus datus savā profilā jebkurā laikā."
+                article={t("gdpr.article16", { defaultValue: "VDAR 16. pants" })}
+                title={t("gdpr.correctionRight", { defaultValue: "Labošanas tiesības" })}
+                desc={t("gdpr.correctionRightDesc", { defaultValue: "Varat labot neprecīzus datus savā profilā jebkurā laikā." })}
                 action={
                   <Button size="sm" variant="outline" asChild className="flex-shrink-0 gap-1.5">
                     <Link href={isCandidate ? "/kandidats/profils" : "/darbadevetajs/profils"}>
-                      Labot profilu
+                      {t("gdpr.editProfile", { defaultValue: "Labot profilu" })}
                     </Link>
                   </Button>
                 }
@@ -307,16 +314,16 @@ export default function GdprCenter() {
                   <Lock className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">Jūsu anonīmais identifikators</p>
+                  <p className="text-sm font-medium">{t("gdpr.anonymousId", { defaultValue: "Jūsu anonīmais identifikators" })}</p>
                   <p className="text-xs text-muted-foreground">
-                    Darba devēji redz jūs kā:{" "}
+                    {t("gdpr.employerSeesYouAs", { defaultValue: "Darba devēji redz jūs kā:" })}{" "}
                     <code className="font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                       {consentStatus.pseudonymousId}
                     </code>
                   </p>
                 </div>
                 <Badge variant="outline" className="text-xs flex-shrink-0 border-primary/20 text-primary">
-                  Pseudonimizēts
+                  {t("gdpr.pseudonymized", { defaultValue: "Pseudonimizēts" })}
                 </Badge>
               </CardContent>
             </Card>
@@ -327,11 +334,10 @@ export default function GdprCenter() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base text-red-400">
                   <Trash2 className="w-4 h-4" />
-                  Datu dzēšana (VDAR 17. pants)
+                  {t("gdpr.deletionTitle", { defaultValue: "Datu dzēšana (VDAR 17. pants)" })}
                 </CardTitle>
                 <CardDescription>
-                  Pieprasot datu dzēšanu, visi jūsu personas dati tiks neatgriezeniski dzēsti 30 dienu laikā.
-                  Visas aktīvās atbilstības un intervijas tiks pārtrauktas nekavējoties.
+                  {t("gdpr.deletionDesc", { defaultValue: "Pieprasot datu dzēšanu, visi jūsu personas dati tiks neatgriezeniski dzēsti 30 dienu laikā. Visas aktīvās atbilstības un intervijas tiks pārtrauktas nekavējoties." })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -340,8 +346,8 @@ export default function GdprCenter() {
                     <div className="flex items-start gap-2 mb-3">
                       <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
                       <p className="text-sm text-red-300">
-                        <strong>Vai tiešām vēlaties dzēst visus savus datus?</strong> Šī darbība ir neatgriezeniska.
-                        Jūsu profils, atbilstības un interviju vēsture tiks neatgriezeniski dzēsta.
+                        <strong>{t("gdpr.confirmDeleteQuestion", { defaultValue: "Vai tiešām vēlaties dzēst visus savus datus?" })}</strong>{" "}
+                        {t("gdpr.irreversible", { defaultValue: "Šī darbība ir neatgriezeniska. Jūsu profils, atbilstības un interviju vēsture tiks neatgriezeniski dzēsta." })}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -351,10 +357,12 @@ export default function GdprCenter() {
                         onClick={handleDeletion}
                         disabled={requestDeletion.isPending}
                       >
-                        {requestDeletion.isPending ? "Apstrādā..." : "Jā, dzēst manus datus"}
+                        {requestDeletion.isPending
+                          ? t("common.loading")
+                          : t("gdpr.confirmDeleteBtn", { defaultValue: "Jā, dzēst manus datus" })}
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => setDeletionConfirm(false)}>
-                        Atcelt
+                        {t("gdpr.cancel")}
                       </Button>
                     </div>
                   </div>
@@ -365,7 +373,7 @@ export default function GdprCenter() {
                     onClick={handleDeletion}
                   >
                     <Trash2 className="w-4 h-4" />
-                    Pieprasīt datu dzēšanu
+                    {t("gdpr.requestDeletion", { defaultValue: "Pieprasīt datu dzēšanu" })}
                   </Button>
                 )}
               </CardContent>
@@ -375,9 +383,9 @@ export default function GdprCenter() {
               <CardContent className="p-4 flex items-center gap-3">
                 <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
                 <div>
-                  <p className="font-medium text-sm text-amber-400">Datu dzēšana ieplānota</p>
+                  <p className="font-medium text-sm text-amber-400">{t("gdpr.deletionScheduled", { defaultValue: "Datu dzēšana ieplānota" })}</p>
                   <p className="text-xs text-muted-foreground">
-                    Jūsu pieprasījums saņemts. Dati tiks dzēsti 30 dienu laikā.
+                    {t("gdpr.deletionScheduledDesc", { defaultValue: "Jūsu pieprasījums saņemts. Dati tiks dzēsti 30 dienu laikā." })}
                   </p>
                 </div>
               </CardContent>
@@ -388,10 +396,10 @@ export default function GdprCenter() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Clock className="w-4 h-4 text-primary" />
-                Apstrādes darbību žurnāls (VDAR 30. pants)
+                {t("gdpr.auditLogTitle", { defaultValue: "Apstrādes darbību žurnāls (VDAR 30. pants)" })}
               </CardTitle>
               <CardDescription>
-                Pilns ieraksts par visām darbībām ar jūsu datiem.
+                {t("gdpr.auditLogDesc", { defaultValue: "Pilns ieraksts par visām darbībām ar jūsu datiem." })}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -406,7 +414,7 @@ export default function GdprCenter() {
                         </span>
                       </div>
                       <span className="text-xs text-muted-foreground flex-shrink-0">
-                        {new Date(entry.createdAt).toLocaleString("lv-LV")}
+                        {new Date(entry.createdAt).toLocaleString()}
                       </span>
                     </div>
                   ))}
@@ -414,7 +422,7 @@ export default function GdprCenter() {
               ) : (
                 <div className="text-center py-6">
                   <Clock className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">Nav žurnāla ierakstu vēl</p>
+                  <p className="text-sm text-muted-foreground">{t("gdpr.noLogs")}</p>
                 </div>
               )}
             </CardContent>
@@ -426,13 +434,14 @@ export default function GdprCenter() {
 }
 
 function ConsentRow({
-  icon, title, description, value, required, onChange, loading, disabled, disabledReason, grantedAt
+  icon, title, description, value, required, requiredLabel, onChange, loading, disabled, disabledReason, grantedAt
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   value: boolean;
   required?: boolean;
+  requiredLabel?: string;
   onChange: (v: boolean) => void;
   loading?: boolean;
   disabled?: boolean;
@@ -448,11 +457,11 @@ function ConsentRow({
         <div className="flex items-center gap-2 mb-1">
           <p className="font-medium text-sm">{title}</p>
           {required && (
-            <Badge variant="outline" className="text-xs px-1.5 py-0 border-primary/20 text-primary">Obligāts</Badge>
+            <Badge variant="outline" className="text-xs px-1.5 py-0 border-primary/20 text-primary">{requiredLabel ?? "Required"}</Badge>
           )}
           {value && grantedAt && (
             <span className="text-xs text-muted-foreground">
-              · {new Date(grantedAt).toLocaleDateString("lv-LV")}
+              · {new Date(grantedAt).toLocaleDateString()}
             </span>
           )}
         </div>

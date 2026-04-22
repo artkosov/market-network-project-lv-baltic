@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Shield, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 const STORAGE_KEY = "mn_cookie_consent_v1";
 
@@ -46,6 +47,7 @@ export default function CookieConsent() {
   const [expanded, setExpanded] = useState(false);
   const [functional, setFunctional] = useState(true);
   const [analytics, setAnalytics] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const stored = getStoredPreferences();
@@ -89,20 +91,18 @@ export default function CookieConsent() {
                   <Shield className="w-4 h-4 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm mb-1">Sīkdatņu iestatījumi</p>
+                  <p className="font-semibold text-sm mb-1">{t("cookie.title")}</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Mēs izmantojam sīkdatnes, lai nodrošinātu platformas darbību un uzlabotu jūsu pieredzi.
-                    Obligātās sesijas sīkdatnes vienmēr ir aktīvas. Pārējās varat kontrolēt zemāk.
-                    Skatīt{" "}
+                    {t("cookie.desc")}{" "}
                     <Link href="/privatuma-politika" className="text-primary underline" onClick={() => setVisible(false)}>
-                      Privātuma politiku
+                      {t("cookie.privacyPolicy")}
                     </Link>.
                   </p>
                 </div>
                 <button
                   onClick={handleRejectAll}
                   className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
-                  aria-label="Noraidīt visas sīkdatnes"
+                  aria-label={t("cookie.reject")}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -122,11 +122,11 @@ export default function CookieConsent() {
                       {/* Required */}
                       <div className="flex items-center justify-between p-3 rounded-xl bg-accent/20">
                         <div className="flex-1 min-w-0 pr-4">
-                          <p className="text-xs font-medium">Obligātās sīkdatnes</p>
-                          <p className="text-xs text-muted-foreground">Sesijas autentifikācija. Nepieciešamas platformas darbībai.</p>
+                          <p className="text-xs font-medium">{t("cookie.necessary")}</p>
+                          <p className="text-xs text-muted-foreground">{t("cookie.necessaryDesc", { defaultValue: "Sesijas autentifikācija. Nepieciešamas platformas darbībai." })}</p>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <span className="text-xs text-muted-foreground">Vienmēr aktīvas</span>
+                          <span className="text-xs text-muted-foreground">{t("cookie.alwaysActive", { defaultValue: "Vienmēr aktīvas" })}</span>
                           <Switch checked disabled className="opacity-50" />
                         </div>
                       </div>
@@ -134,8 +134,8 @@ export default function CookieConsent() {
                       {/* Functional */}
                       <div className="flex items-center justify-between p-3 rounded-xl bg-accent/20">
                         <div className="flex-1 min-w-0 pr-4">
-                          <p className="text-xs font-medium">Funkcionālās sīkdatnes</p>
-                          <p className="text-xs text-muted-foreground">Valodas un tēmas preferences saglabāšana.</p>
+                          <p className="text-xs font-medium">{t("cookie.functional", { defaultValue: "Funkcionālās sīkdatnes" })}</p>
+                          <p className="text-xs text-muted-foreground">{t("cookie.functionalDesc", { defaultValue: "Valodas un tēmas preferences saglabāšana." })}</p>
                         </div>
                         <Switch
                           checked={functional}
@@ -147,8 +147,8 @@ export default function CookieConsent() {
                       {/* Analytics */}
                       <div className="flex items-center justify-between p-3 rounded-xl bg-accent/20">
                         <div className="flex-1 min-w-0 pr-4">
-                          <p className="text-xs font-medium">Analītikas sīkdatnes</p>
-                          <p className="text-xs text-muted-foreground">Anonimizēta platformas lietojuma statistika platformas uzlabošanai.</p>
+                          <p className="text-xs font-medium">{t("cookie.analytics")}</p>
+                          <p className="text-xs text-muted-foreground">{t("cookie.analyticsDesc", { defaultValue: "Anonimizēta platformas lietojuma statistika platformas uzlabošanai." })}</p>
                         </div>
                         <Switch
                           checked={analytics}
@@ -168,7 +168,7 @@ export default function CookieConsent() {
                   onClick={handleAcceptAll}
                   className="bg-primary text-primary-foreground hover:bg-primary/90 text-xs"
                 >
-                  Pieņemt visas
+                  {t("cookie.accept")}
                 </Button>
                 {expanded ? (
                   <Button
@@ -177,7 +177,7 @@ export default function CookieConsent() {
                     onClick={handleAcceptSelected}
                     className="text-xs"
                   >
-                    Saglabāt izvēli
+                    {t("cookie.save")}
                   </Button>
                 ) : null}
                 <Button
@@ -186,16 +186,16 @@ export default function CookieConsent() {
                   onClick={handleRejectAll}
                   className="text-xs text-muted-foreground hover:text-foreground"
                 >
-                  Noraidīt visas
+                  {t("cookie.reject")}
                 </Button>
                 <button
                   onClick={() => setExpanded(!expanded)}
                   className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {expanded ? (
-                    <>Slēpt <ChevronUp className="w-3 h-3" /></>
+                    <>{t("cookie.hide", { defaultValue: "Slēpt" })} <ChevronUp className="w-3 h-3" /></>
                   ) : (
-                    <>Pielāgot <ChevronDown className="w-3 h-3" /></>
+                    <>{t("cookie.customize")} <ChevronDown className="w-3 h-3" /></>
                   )}
                 </button>
               </div>

@@ -12,29 +12,34 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Building2, Globe, MapPin, Briefcase, CheckCircle2, Upload, Link2, Hash, ArrowRight, Shield } from "lucide-react";
 import { Link } from "wouter";
-
-const INDUSTRY_OPTIONS = [
-  "Informācijas tehnoloģijas",
-  "Finanses un banku darbība",
-  "Loģistika un transports",
-  "Ražošana",
-  "Tirdzniecība un mazumtirdzniecība",
-  "Veselības aprūpe",
-  "Izglītība",
-  "Celtniecība un nekustamais īpašums",
-  "Mārketings un reklāma",
-  "Juridiskās pakalpojumi",
-  "Viesmīlība un tūrisms",
-  "Lauksaimniecība",
-  "Enerģētika",
-  "Cits",
-];
+import { useTranslation } from "react-i18next";
 
 export default function EmployerProfile() {
   const { isAuthenticated } = useAuth();
   const { data: profile, refetch } = trpc.employer.getProfile.useQuery(undefined, { enabled: isAuthenticated });
   const upsert = trpc.employer.upsertProfile.useMutation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
+
+  const INDUSTRY_OPTIONS = t("employerProfile.industries", {
+    returnObjects: true,
+    defaultValue: [
+      "Informācijas tehnoloģijas",
+      "Finanses un banku darbība",
+      "Loģistika un transports",
+      "Ražošana",
+      "Tirdzniecība un mazumtirdzniecība",
+      "Veselības aprūpe",
+      "Izglītība",
+      "Celtniecība un nekustamais īpašums",
+      "Mārketings un reklāma",
+      "Juridiskās pakalpojumi",
+      "Viesmīlība un tūrisms",
+      "Lauksaimniecība",
+      "Enerģētika",
+      "Cits",
+    ]
+  }) as string[];
 
   const [form, setForm] = useState({
     companyName: "",
@@ -64,16 +69,16 @@ export default function EmployerProfile() {
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) { toast.error("Lūdzu augšupielādējiet attēlu"); return; }
-    if (file.size > 2 * 1024 * 1024) { toast.error("Logo nedrīkst pārsniegt 2 MB"); return; }
+    if (!file.type.startsWith("image/")) { toast.error(t("employerProfile.logoImageRequired", { defaultValue: "Lūdzu augšupielādējiet attēlu" })); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error(t("employerProfile.logoTooLarge", { defaultValue: "Logo nedrīkst pārsniegt 2 MB" })); return; }
     const reader = new FileReader();
     reader.onload = (ev) => setLogoPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
-    toast.success("Logo pievienots priekšskatam");
+    toast.success(t("employerProfile.logoPreviewAdded", { defaultValue: "Logo pievienots priekšskatam" }));
   };
 
   const handleSave = async () => {
-    if (!form.companyName.trim()) { toast.error("Uzņēmuma nosaukums ir obligāts"); return; }
+    if (!form.companyName.trim()) { toast.error(t("employerProfile.companyNameRequired", { defaultValue: "Uzņēmuma nosaukums ir obligāts" })); return; }
     setSaving(true);
     try {
       await upsert.mutateAsync({
@@ -84,19 +89,19 @@ export default function EmployerProfile() {
         description: form.description || undefined,
         city: form.city || undefined,
       });
-      toast.success("Profils saglabāts!");
+      toast.success(t("employerProfile.saved", { defaultValue: "Profils saglabāts!" }));
       refetch();
-    } catch { toast.error("Kļūda saglabājot profilu"); }
+    } catch { toast.error(t("employerProfile.saveError", { defaultValue: "Kļūda saglabājot profilu" })); }
     finally { setSaving(false); }
   };
 
   const completionItems = [
-    { label: "Nosaukums", done: !!form.companyName },
-    { label: "Nozare", done: !!form.industry },
-    { label: "Pilsēta", done: !!form.city },
-    { label: "Mājaslapa", done: !!form.website },
-    { label: "Apraksts", done: !!form.description },
-    { label: "Logo", done: !!logoPreview },
+    { label: t("employerProfile.completionName", { defaultValue: "Nosaukums" }), done: !!form.companyName },
+    { label: t("employerProfile.completionIndustry", { defaultValue: "Nozare" }), done: !!form.industry },
+    { label: t("employerProfile.completionCity", { defaultValue: "Pilsēta" }), done: !!form.city },
+    { label: t("employerProfile.completionWebsite", { defaultValue: "Mājaslapa" }), done: !!form.website },
+    { label: t("employerProfile.completionDesc", { defaultValue: "Apraksts" }), done: !!form.description },
+    { label: t("employerProfile.completionLogo", { defaultValue: "Logo" }), done: !!logoPreview },
   ];
   const completionPct = Math.round((completionItems.filter(i => i.done).length / completionItems.length) * 100);
 
@@ -105,16 +110,16 @@ export default function EmployerProfile() {
       <div className="container py-8 max-w-3xl">
         <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Uzņēmuma profils</h1>
-            <p className="text-muted-foreground">Aizpildi informāciju par savu uzņēmumu</p>
+            <h1 className="text-3xl font-bold mb-2">{t("employerProfile.title")}</h1>
+            <p className="text-muted-foreground">{t("employerProfile.subtitle")}</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Pilnīgums</p>
+              <p className="text-xs text-muted-foreground">{t("employerProfile.completion", { defaultValue: "Pilnīgums" })}</p>
               <p className="text-lg font-bold text-primary">{completionPct}%</p>
             </div>
             <Button asChild variant="outline" size="sm">
-              <Link href="/darbadevetajs"><ArrowRight className="w-3 h-3 mr-1 rotate-180" />Uz paneli</Link>
+              <Link href="/darbadevetajs"><ArrowRight className="w-3 h-3 mr-1 rotate-180" />{t("employerProfile.toDashboard", { defaultValue: "Uz paneli" })}</Link>
             </Button>
           </div>
         </div>
@@ -122,7 +127,7 @@ export default function EmployerProfile() {
         {/* Completion bar */}
         <div className="mb-6 p-4 rounded-xl bg-accent/30 border border-border/50">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium">Profila aizpildīšana</p>
+            <p className="text-sm font-medium">{t("employerProfile.profileCompletion", { defaultValue: "Profila aizpildīšana" })}</p>
             <span className="text-xs text-primary font-semibold">{completionPct}%</span>
           </div>
           <div className="w-full bg-muted rounded-full h-2 mb-3">
@@ -145,7 +150,7 @@ export default function EmployerProfile() {
           <Card className="glass-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Building2 className="w-4 h-4 text-primary" />Uzņēmuma identitāte
+                <Building2 className="w-4 h-4 text-primary" />{t("employerProfile.companyIdentity", { defaultValue: "Uzņēmuma identitāte" })}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -165,32 +170,32 @@ export default function EmployerProfile() {
                 </div>
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
                 <div className="flex-1">
-                  <p className="text-sm font-medium mb-1">Uzņēmuma logo</p>
-                  <p className="text-xs text-muted-foreground mb-2">JPG, PNG, WebP vai SVG. Maks. 2 MB.</p>
+                  <p className="text-sm font-medium mb-1">{t("employerProfile.companyLogo", { defaultValue: "Uzņēmuma logo" })}</p>
+                  <p className="text-xs text-muted-foreground mb-2">{t("employerProfile.logoFormats", { defaultValue: "JPG, PNG, WebP vai SVG. Maks. 2 MB." })}</p>
                   <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="text-xs">
-                    <Upload className="w-3 h-3 mr-1.5" />{logoPreview ? "Mainīt logo" : "Augšupielādēt logo"}
+                    <Upload className="w-3 h-3 mr-1.5" />{logoPreview ? t("employerProfile.changeLogo", { defaultValue: "Mainīt logo" }) : t("employerProfile.uploadLogo", { defaultValue: "Augšupielādēt logo" })}
                   </Button>
                 </div>
               </div>
               <Separator />
               <div>
-                <Label>Uzņēmuma nosaukums *</Label>
+                <Label>{t("employerProfile.companyName")} *</Label>
                 <Input className="mt-1 bg-input/50" value={form.companyName} onChange={e => setForm(f => ({ ...f, companyName: e.target.value }))} placeholder="SIA Mans Uzņēmums" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Reģistrācijas numurs</Label>
+                  <Label>{t("employerProfile.regNumber", { defaultValue: "Reģistrācijas numurs" })}</Label>
                   <div className="relative mt-1">
                     <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <Input className="bg-input/50 pl-8" placeholder="40001234567" />
                   </div>
                 </div>
                 <div>
-                  <Label>Uzņēmuma lielums</Label>
+                  <Label>{t("employerProfile.companySize", { defaultValue: "Uzņēmuma lielums" })}</Label>
                   <Select value={form.companySize} onValueChange={v => setForm(f => ({ ...f, companySize: v }))}>
                     <SelectTrigger className="mt-1 bg-input/50"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {["1-10","11-50","51-200","201-500","500+"].map(s => <SelectItem key={s} value={s}>{s} darbinieki</SelectItem>)}
+                      {["1-10","11-50","51-200","201-500","500+"].map(s => <SelectItem key={s} value={s}>{s} {t("employerProfile.employees", { defaultValue: "darbinieki" })}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -202,22 +207,22 @@ export default function EmployerProfile() {
           <Card className="glass-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Briefcase className="w-4 h-4 text-primary" />Uzņēmuma informācija
+                <Briefcase className="w-4 h-4 text-primary" />{t("employerProfile.companyInfo", { defaultValue: "Uzņēmuma informācija" })}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Nozare</Label>
+                  <Label>{t("employerProfile.industry", { defaultValue: "Nozare" })}</Label>
                   <Select value={form.industry} onValueChange={v => setForm(f => ({ ...f, industry: v }))}>
-                    <SelectTrigger className="mt-1 bg-input/50"><SelectValue placeholder="Izvēlieties nozari..." /></SelectTrigger>
+                    <SelectTrigger className="mt-1 bg-input/50"><SelectValue placeholder={t("employerProfile.selectIndustry", { defaultValue: "Izvēlieties nozari..." })} /></SelectTrigger>
                     <SelectContent>
                       {INDUSTRY_OPTIONS.map(ind => <SelectItem key={ind} value={ind}>{ind}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>Pilsēta</Label>
+                  <Label>{t("candidateProfile.city")}</Label>
                   <div className="relative mt-1">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <Input className="bg-input/50 pl-8" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} placeholder="Rīga" />
@@ -225,16 +230,16 @@ export default function EmployerProfile() {
                 </div>
               </div>
               <div>
-                <Label>Mājaslapa</Label>
+                <Label>{t("employerProfile.website", { defaultValue: "Mājaslapa" })}</Label>
                 <div className="relative mt-1">
                   <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                   <Input className="bg-input/50 pl-8" value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} placeholder="https://uznemums.lv" />
                 </div>
               </div>
               <div>
-                <Label>Uzņēmuma apraksts</Label>
-                <Textarea className="mt-1 bg-input/50 resize-none" rows={4} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Pastāsti par savu uzņēmumu, kultūru un vērtībām..." />
-                <p className="text-xs text-muted-foreground mt-1">{form.description.length}/500 rakstzīmes</p>
+                <Label>{t("employerProfile.description", { defaultValue: "Uzņēmuma apraksts" })}</Label>
+                <Textarea className="mt-1 bg-input/50 resize-none" rows={4} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder={t("employerProfile.descPlaceholder", { defaultValue: "Pastāsti par savu uzņēmumu, kultūru un vērtībām..." })} />
+                <p className="text-xs text-muted-foreground mt-1">{form.description.length}/500 {t("employerProfile.chars", { defaultValue: "rakstzīmes" })}</p>
               </div>
             </CardContent>
           </Card>
@@ -243,9 +248,9 @@ export default function EmployerProfile() {
           <Card className="glass-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Link2 className="w-4 h-4 text-primary" />Sociālie tīkli
+                <Link2 className="w-4 h-4 text-primary" />{t("employerProfile.socialLinks", { defaultValue: "Sociālie tīkli" })}
               </CardTitle>
-              <CardDescription>Pievienojiet saites uz uzņēmuma profiliem</CardDescription>
+              <CardDescription>{t("employerProfile.socialLinksDesc", { defaultValue: "Pievienojiet saites uz uzņēmuma profiliem" })}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div><Label>LinkedIn</Label><Input className="mt-1 bg-input/50" placeholder="https://linkedin.com/company/mans-uznemums" /></div>
@@ -261,14 +266,16 @@ export default function EmployerProfile() {
             <CardContent className="p-4 flex items-start gap-3">
               <Shield className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium">GDPR atbilstība</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Uzņēmuma profila dati tiek glabāti šifrētā veidā saskaņā ar VDAR prasībām. Kontaktinformācija aizsargāta ar AES-256-GCM šifrēšanu.</p>
+                <p className="text-sm font-medium">{t("employerProfile.gdprCompliance", { defaultValue: "GDPR atbilstība" })}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("employerProfile.gdprComplianceDesc", { defaultValue: "Uzņēmuma profila dati tiek glabāti šifrētā veidā saskaņā ar VDAR prasībām. Kontaktinformācija aizsargāta ar AES-256-GCM šifrēšanu." })}</p>
               </div>
             </CardContent>
           </Card>
 
           <Button onClick={handleSave} disabled={saving} className="w-full bg-primary text-primary-foreground py-6 text-base font-semibold">
-            {saving ? "Saglabā..." : "Saglabāt profilu"}
+            {saving
+              ? t("candidateProfile.saving", { defaultValue: "Saglabā..." })
+              : t("employerProfile.saveProfile")}
           </Button>
         </div>
       </div>

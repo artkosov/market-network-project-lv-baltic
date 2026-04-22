@@ -5,6 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend,
@@ -19,14 +20,15 @@ const COLORS = ["#d4a853", "#3b82f6", "#22c55e", "#f59e0b", "#ef4444"];
 
 export default function Analytics() {
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation();
   const { data: jobs } = trpc.employer.getJobs.useQuery(undefined, { enabled: isAuthenticated });
 
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-4">Lūdzu pieslēdzieties</h2>
-          <Button asChild><a href={getLoginUrl()}>Pieslēgties</a></Button>
+          <h2 className="text-xl font-semibold mb-4">{t("analytics.pleaseLogin", { defaultValue: "Lūdzu pieslēdzieties" })}</h2>
+          <Button asChild><a href={getLoginUrl()}>{t("nav.login")}</a></Button>
         </div>
       </div>
     );
@@ -46,19 +48,19 @@ export default function Analytics() {
 
   // Status distribution for pie chart
   const statusData = [
-    { name: "Aktīvas", value: activeJobs.length },
-    { name: "Pauzētas", value: pausedJobs.length },
-    { name: "Slēgtas", value: closedJobs.length },
+    { name: t("jobPostings.statusActive", { defaultValue: "Aktīvas" }), value: activeJobs.length },
+    { name: t("jobPostings.statusPaused", { defaultValue: "Pauzētas" }), value: pausedJobs.length },
+    { name: t("jobPostings.statusClosed", { defaultValue: "Slēgtas" }), value: closedJobs.length },
   ].filter(d => d.value > 0);
 
   // Job type distribution
   const jobTypeMap: Record<string, number> = {};
   jobList.forEach((j: any) => {
     const label =
-      j.jobType === "full_time" ? "Pilna slodze" :
-      j.jobType === "part_time" ? "Nepilna slodze" :
-      j.jobType === "contract" ? "Līgums" :
-      j.jobType === "internship" ? "Prakse" :
+      j.jobType === "full_time" ? t("employerDashboard.fullTime") :
+      j.jobType === "part_time" ? t("employerDashboard.partTime") :
+      j.jobType === "contract" ? t("createJob.contract", { defaultValue: "Līgums" }) :
+      j.jobType === "internship" ? t("createJob.internship", { defaultValue: "Prakse" }) :
       j.jobType === "freelance" ? "Freelance" : j.jobType;
     jobTypeMap[label] = (jobTypeMap[label] ?? 0) + 1;
   });
@@ -68,9 +70,9 @@ export default function Analytics() {
   const remotePolicyMap: Record<string, number> = {};
   jobList.forEach((j: any) => {
     const label =
-      j.remotePolicy === "onsite" ? "Klātienē" :
-      j.remotePolicy === "hybrid" ? "Hibrīds" :
-      j.remotePolicy === "remote" ? "Attālināts" : j.remotePolicy;
+      j.remotePolicy === "onsite" ? t("candidateProfile.onsite") :
+      j.remotePolicy === "hybrid" ? t("candidateProfile.hybrid") :
+      j.remotePolicy === "remote" ? t("candidateProfile.remoteOnly") : j.remotePolicy;
     remotePolicyMap[label] = (remotePolicyMap[label] ?? 0) + 1;
   });
   const remotePolicyData = Object.entries(remotePolicyMap).map(([name, value]) => ({ name, value }));
@@ -110,22 +112,45 @@ export default function Analytics() {
           <div>
             <h1 className="text-3xl font-bold mb-1 flex items-center gap-3">
               <BarChart2 className="w-7 h-7 text-primary" />
-              Analītika
+              {t("analytics.title")}
             </h1>
-            <p className="text-muted-foreground">Detalizēts pārskats par jūsu vakancēm un atbilstībām</p>
+            <p className="text-muted-foreground">{t("analytics.subtitle", { defaultValue: "Detalizēts pārskats par jūsu vakancēm un atbilstībām" })}</p>
           </div>
           <Button asChild variant="outline" size="sm">
-            <Link href="/darbadevetajs"><ArrowRight className="w-3 h-3 mr-1 rotate-180" />Uz paneli</Link>
+            <Link href="/darbadevetajs">
+              <ArrowRight className="w-3 h-3 mr-1 rotate-180" />
+              {t("analytics.toDashboard", { defaultValue: "Uz paneli" })}
+            </Link>
           </Button>
         </div>
 
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { icon: <BriefcaseIcon className="w-5 h-5" />, value: jobList.length, label: "Kopā vakances", sub: `${activeJobs.length} aktīvas` },
-            { icon: <Sparkles className="w-5 h-5" />, value: totalMatches, label: "Kopā atbilstības", sub: "Visi darbi" },
-            { icon: <Users className="w-5 h-5" />, value: jobList.length > 0 ? (totalMatches / jobList.length).toFixed(1) : "0", label: "Vidēji atbilstības/vakance", sub: "AI saskaņošana" },
-            { icon: <TrendingUp className="w-5 h-5" />, value: avgSalaryMin > 0 ? `€${Math.round(avgSalaryMin)}` : "—", label: "Vidējā min. alga", sub: "EUR/mēnesī" },
+            {
+              icon: <BriefcaseIcon className="w-5 h-5" />,
+              value: jobList.length,
+              label: t("analytics.totalJobs", { defaultValue: "Kopā vakances" }),
+              sub: `${activeJobs.length} ${t("jobPostings.statusActive", { defaultValue: "aktīvas" }).toLowerCase()}`
+            },
+            {
+              icon: <Sparkles className="w-5 h-5" />,
+              value: totalMatches,
+              label: t("analytics.totalMatches", { defaultValue: "Kopā atbilstības" }),
+              sub: t("analytics.allJobs", { defaultValue: "Visi darbi" })
+            },
+            {
+              icon: <Users className="w-5 h-5" />,
+              value: jobList.length > 0 ? (totalMatches / jobList.length).toFixed(1) : "0",
+              label: t("analytics.avgMatchesPerJob", { defaultValue: "Vidēji atbilstības/vakance" }),
+              sub: t("analytics.aiMatching", { defaultValue: "AI saskaņošana" })
+            },
+            {
+              icon: <TrendingUp className="w-5 h-5" />,
+              value: avgSalaryMin > 0 ? `€${Math.round(avgSalaryMin)}` : "—",
+              label: t("analytics.avgMinSalary", { defaultValue: "Vidējā min. alga" }),
+              sub: t("analytics.eurPerMonth", { defaultValue: "EUR/mēnesī" })
+            },
           ].map((stat, i) => (
             <Card key={i} className="glass-card">
               <CardContent className="p-4">
@@ -148,9 +173,9 @@ export default function Analytics() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-primary" />
-                Atbilstības pa vakancēm
+                {t("analytics.matchesByJob", { defaultValue: "Atbilstības pa vakancēm" })}
               </CardTitle>
-              <CardDescription>AI atrastās atbilstības katrai vakancei</CardDescription>
+              <CardDescription>{t("analytics.matchesByJobDesc", { defaultValue: "AI atrastās atbilstības katrai vakancei" })}</CardDescription>
             </CardHeader>
             <CardContent>
               {jobMatchData.length > 0 ? (
@@ -166,12 +191,12 @@ export default function Analytics() {
                     />
                     <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="atbilstibas" name="Atbilstības" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="atbilstibas" name={t("analytics.matches", { defaultValue: "Atbilstības" })} fill="var(--primary)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="h-[220px] flex items-center justify-center text-muted-foreground text-sm">
-                  Nav datu. Pievienojiet vakances.
+                  {t("analytics.noData")}
                 </div>
               )}
             </CardContent>
@@ -182,9 +207,9 @@ export default function Analytics() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <BriefcaseIcon className="w-4 h-4 text-primary" />
-                Vacanču statusi
+                {t("analytics.vacancyStatuses", { defaultValue: "Vacanču statusi" })}
               </CardTitle>
-              <CardDescription>Sadalījums pēc statusa</CardDescription>
+              <CardDescription>{t("analytics.distributionByStatus", { defaultValue: "Sadalījums pēc statusa" })}</CardDescription>
             </CardHeader>
             <CardContent>
               {statusData.length > 0 ? (
@@ -213,7 +238,7 @@ export default function Analytics() {
                 </ResponsiveContainer>
               ) : (
                 <div className="h-[220px] flex items-center justify-center text-muted-foreground text-sm">
-                  Nav datu. Pievienojiet vakances.
+                  {t("analytics.noData")}
                 </div>
               )}
             </CardContent>
@@ -226,20 +251,14 @@ export default function Analytics() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Clock className="w-4 h-4 text-primary" />
-                Darba veidi
+                {t("analytics.jobTypes", { defaultValue: "Darba veidi" })}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {jobTypeData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
-                    <Pie
-                      data={jobTypeData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={65}
-                      dataKey="value"
-                    >
+                    <Pie data={jobTypeData} cx="50%" cy="50%" outerRadius={65} dataKey="value">
                       {jobTypeData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
@@ -251,7 +270,9 @@ export default function Analytics() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[180px] flex items-center justify-center text-muted-foreground text-sm">Nav datu</div>
+                <div className="h-[180px] flex items-center justify-center text-muted-foreground text-sm">
+                  {t("analytics.noData")}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -261,20 +282,14 @@ export default function Analytics() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Eye className="w-4 h-4 text-primary" />
-                Darba veids
+                {t("analytics.workFormat", { defaultValue: "Darba veids" })}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {remotePolicyData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
-                    <Pie
-                      data={remotePolicyData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={65}
-                      dataKey="value"
-                    >
+                    <Pie data={remotePolicyData} cx="50%" cy="50%" outerRadius={65} dataKey="value">
                       {remotePolicyData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
                       ))}
@@ -286,7 +301,9 @@ export default function Analytics() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[180px] flex items-center justify-center text-muted-foreground text-sm">Nav datu</div>
+                <div className="h-[180px] flex items-center justify-center text-muted-foreground text-sm">
+                  {t("analytics.noData")}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -296,16 +313,16 @@ export default function Analytics() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-primary" />
-                Ātrais kopsavilkums
+                {t("analytics.quickSummary", { defaultValue: "Ātrais kopsavilkums" })}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {[
-                { label: "Aktīvas vakances", value: activeJobs.length, color: "text-green-400" },
-                { label: "Pauzētas vakances", value: pausedJobs.length, color: "text-yellow-400" },
-                { label: "Slēgtas vakances", value: closedJobs.length, color: "text-red-400" },
-                { label: "Importētas (Sentinel)", value: jobList.filter((j: any) => j.source === "scraped").length, color: "text-blue-400" },
-                { label: "Manuāli izveidotas", value: jobList.filter((j: any) => j.source === "manual").length, color: "text-primary" },
+                { label: t("analytics.activeJobs", { defaultValue: "Aktīvas vakances" }), value: activeJobs.length, color: "text-green-400" },
+                { label: t("analytics.pausedJobs", { defaultValue: "Pauzētas vakances" }), value: pausedJobs.length, color: "text-yellow-400" },
+                { label: t("analytics.closedJobs", { defaultValue: "Slēgtas vakances" }), value: closedJobs.length, color: "text-red-400" },
+                { label: t("analytics.importedSentinel", { defaultValue: "Importētas (Sentinel)" }), value: jobList.filter((j: any) => j.source === "scraped").length, color: "text-blue-400" },
+                { label: t("analytics.manuallyCreated", { defaultValue: "Manuāli izveidotas" }), value: jobList.filter((j: any) => j.source === "manual").length, color: "text-primary" },
               ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">{item.label}</span>
@@ -322,9 +339,9 @@ export default function Analytics() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-primary" />
-                Algu diapazons pa vakancēm (EUR/mēnesī)
+                {t("analytics.salaryRange", { defaultValue: "Algu diapazons pa vakancēm (EUR/mēnesī)" })}
               </CardTitle>
-              <CardDescription>Min. un max. alga katrai vakancei</CardDescription>
+              <CardDescription>{t("analytics.salaryRangeDesc", { defaultValue: "Min. un max. alga katrai vakancei" })}</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
@@ -340,7 +357,13 @@ export default function Analytics() {
                   <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
-                    formatter={(value) => <span style={{ fontSize: 11, color: "var(--muted-foreground)" }}>{value === "min" ? "Min. alga" : "Max. alga"}</span>}
+                    formatter={(value) => (
+                      <span style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
+                        {value === "min"
+                          ? t("analytics.minSalary", { defaultValue: "Min. alga" })
+                          : t("analytics.maxSalary", { defaultValue: "Max. alga" })}
+                      </span>
+                    )}
                   />
                   <Bar dataKey="min" name="min" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="max" name="max" fill="var(--primary)" radius={[4, 4, 0, 0]} />

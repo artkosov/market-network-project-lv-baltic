@@ -14,6 +14,8 @@ import { Link, useLocation } from "wouter";
 import { Bell, BriefcaseIcon, ChevronDown, LogOut, Settings, User } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 interface NavLayoutProps {
   children: React.ReactNode;
@@ -23,6 +25,7 @@ interface NavLayoutProps {
 export default function NavLayout({ children, userType }: NavLayoutProps) {
   const { user, isAuthenticated, logout } = useAuth();
   const [location] = useLocation();
+  const { t } = useTranslation();
 
   const { data: notifications } = trpc.candidate.getNotifications.useQuery(undefined, {
     enabled: isAuthenticated && userType === "candidate",
@@ -32,18 +35,18 @@ export default function NavLayout({ children, userType }: NavLayoutProps) {
   const unreadCount = notifications?.filter((n) => !n.isRead).length ?? 0;
 
   const candidateNav = [
-    { href: "/kandidats", label: "Pārskats" },
-    { href: "/kandidats/atbilstibas", label: "Atbilstības" },
-    { href: "/kandidats/profils", label: "Profils" },
-    { href: "/kandidats/gdpr", label: "GDPR" },
+    { href: "/kandidats", label: t("nav.overview") },
+    { href: "/kandidats/atbilstibas", label: t("nav.matches") },
+    { href: "/kandidats/profils", label: t("nav.profile") },
+    { href: "/kandidats/gdpr", label: t("nav.gdpr") },
   ];
 
   const employerNav = [
-    { href: "/darbadevetajs", label: "Pārskats" },
-    { href: "/darbadevetajs/vakances", label: "Vakances" },
-    { href: "/darbadevetajs/analytics", label: "Analītika" },
-    { href: "/darbadevetajs/profils", label: "Profils" },
-    { href: "/cenas", label: "Abonements" },
+    { href: "/darbadevetajs", label: t("nav.overview") },
+    { href: "/darbadevetajs/vakances", label: t("nav.vacancies") },
+    { href: "/darbadevetajs/analytics", label: t("nav.analytics") },
+    { href: "/darbadevetajs/profils", label: t("nav.profile") },
+    { href: "/cenas", label: t("nav.subscription") },
   ];
 
   const navItems = userType === "candidate" ? candidateNav : userType === "employer" ? employerNav : [];
@@ -85,7 +88,10 @@ export default function NavLayout({ children, userType }: NavLayoutProps) {
           )}
 
           {/* Right Side */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+
             {isAuthenticated ? (
               <>
                 {/* Notifications */}
@@ -112,7 +118,7 @@ export default function NavLayout({ children, userType }: NavLayoutProps) {
                         </AvatarFallback>
                       </Avatar>
                       <span className="hidden sm:block text-sm font-medium max-w-[120px] truncate">
-                        {user?.name ?? "Lietotājs"}
+                        {user?.name ?? t("nav.user")}
                       </span>
                       <ChevronDown className="w-3 h-3 text-muted-foreground" />
                     </Button>
@@ -121,19 +127,19 @@ export default function NavLayout({ children, userType }: NavLayoutProps) {
                     <DropdownMenuItem asChild>
                       <Link href={userType === "candidate" ? "/kandidats/profils" : "/darbadevetajs/profils"}>
                         <User className="w-4 h-4 mr-2" />
-                        Profils
+                        {t("nav.profile")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/cenas">
                         <Settings className="w-4 h-4 mr-2" />
-                        Abonements
+                        {t("nav.subscription")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout} className="text-destructive">
                       <LogOut className="w-4 h-4 mr-2" />
-                      Iziet
+                      {t("nav.logout")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -141,10 +147,10 @@ export default function NavLayout({ children, userType }: NavLayoutProps) {
             ) : (
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm" asChild>
-                  <a href={getLoginUrl()}>Pieslēgties</a>
+                  <a href={getLoginUrl()}>{t("nav.login")}</a>
                 </Button>
                 <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
-                  <a href={getLoginUrl()}>Sākt bezmaksas</a>
+                  <a href={getLoginUrl()}>{t("nav.startFree")}</a>
                 </Button>
               </div>
             )}
@@ -158,17 +164,17 @@ export default function NavLayout({ children, userType }: NavLayoutProps) {
       {/* Legal Footer */}
       <footer className="border-t border-border/30 bg-background/50 py-4 mt-8">
         <div className="container flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
-          <span>© {new Date().getFullYear()} Market Network SIA. Visas tiesības aizsargātas.</span>
+          <span>© {new Date().getFullYear()} {t("footer.copyright")}</span>
           <div className="flex items-center gap-4">
             <Link href="/privatuma-politika" className="hover:text-foreground transition-colors">
-              Privātuma politika
+              {t("footer.privacyPolicy")}
             </Link>
             <Link href="/lietosanas-noteikumi" className="hover:text-foreground transition-colors">
-              Lietošanas noteikumi
+              {t("footer.termsOfService")}
             </Link>
             <Link href="/gdpr" className="hover:text-foreground transition-colors flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
-              GDPR Centrs
+              {t("footer.gdprCenter")}
             </Link>
           </div>
         </div>
