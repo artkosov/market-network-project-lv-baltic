@@ -41,6 +41,7 @@ export default function NavLayout({ children, userType }: NavLayoutProps) {
   const employerNav = [
     { href: "/darbadevetajs", label: "Pārskats" },
     { href: "/darbadevetajs/vakances", label: "Vakances" },
+    { href: "/darbadevetajs/analytics", label: "Analītika" },
     { href: "/darbadevetajs/profils", label: "Profils" },
     { href: "/cenas", label: "Abonements" },
   ];

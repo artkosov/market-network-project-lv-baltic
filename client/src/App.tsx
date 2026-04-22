@@ -19,6 +19,8 @@ import GdprCenter from "./pages/GdprCenter";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import CookieConsent from "./components/CookieConsent";
+import Analytics from "./pages/Analytics";
+import AdminPanel from "./pages/AdminPanel";
 
 function Router() {
   return (
@@ -36,6 +38,9 @@ function Router() {
       <Route path="/darbadevetajs/vakances" component={JobPostings} />
       <Route path="/darbadevetajs/vakances/jauna" component={CreateJob} />
       <Route path="/darbadevetajs/atbilstibas/:jobId" component={Matches} />
+      <Route path="/darbadevetajs/analytics" component={Analytics} />
+      {/* Admin routes */}
+      <Route path="/admin" component={AdminPanel} />
       {/* Shared routes */}
       <Route path="/intervija/:matchId" component={Interview} />
       <Route path="/cenas" component={Pricing} />

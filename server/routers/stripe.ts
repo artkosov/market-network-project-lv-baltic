@@ -4,7 +4,9 @@ import { TRPCError } from "@trpc/server";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getEmployerByUserId } from "../db";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
+// Use a placeholder key in test environments to prevent initialization errors
+const stripeKey = process.env.STRIPE_SECRET_KEY || "sk_test_placeholder_for_tests";
+const stripe = new Stripe(stripeKey, {
   apiVersion: "2026-03-25.dahlia",
 });
 

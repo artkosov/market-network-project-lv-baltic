@@ -92,3 +92,67 @@
 
 ### Tests
 - [x] Vitest: 15 tests passing (including encryption, consent, and matching logic)
+
+## Phase 10: UX Polish & Advanced Features
+
+### Analytics Dashboard
+- [x] Employer analytics page (/darbadevetajs/analytics) with Recharts charts
+- [x] Bar chart: matches per job posting
+- [x] Pie chart: vacancy status distribution (active/paused/closed)
+- [x] Pie chart: job type distribution (full_time/part_time/contract)
+- [x] Pie chart: remote policy distribution (onsite/hybrid/remote)
+- [x] Bar chart: salary range per vacancy
+- [x] KPI cards: total jobs, total matches, avg matches/job, avg salary
+- [x] Analytics link in employer navigation bar
+
+### Enhanced EmployerProfile
+- [x] Logo upload with image preview (JPG/PNG/WebP/SVG, max 2MB)
+- [x] Industry dropdown with 14 Latvian industry categories
+- [x] Registration number field (Latvian company reg. number)
+- [x] Social links section (LinkedIn, Twitter/X, Facebook)
+- [x] Profile completion progress bar with 6 completion indicators
+- [x] GDPR compliance notice card
+- [x] Back-to-dashboard navigation button
+
+### Enhanced JobPostings
+- [x] Real-time search filter (by title and city)
+- [x] Status filter buttons (all/active/paused/closed)
+- [x] Stats row (active/paused/closed counts)
+- [x] Skills preview badges on each job card
+- [x] Job close confirmation dialog
+- [x] Analytics button in header
+- [x] Remote policy and experience years display
+
+### Enhanced Matches UI
+- [x] Stats cards (total, 90%+ count, average score)
+- [x] Full-text search filter
+- [x] Status dropdown filter
+- [x] Minimum score filter (all/50%+/70%+/90%+)
+- [x] Sort by score or date
+- [x] Color-coded score badges (green/gold/yellow/grey)
+- [x] "Izcils" badge for 90%+ matches
+- [x] Skills badges in employer view
+- [x] Green border highlight for 90%+ matches
+
+### Telegram Notifications Component
+- [x] TelegramSetup component with step-by-step instructions
+- [x] Bot link and /start command copy button
+- [x] Chat ID input with save functionality
+- [x] Active status indicator
+
+### Admin Panel
+- [x] /admin route with role-based access control (admin only)
+- [x] Platform KPI cards (users, jobs, matches, subscribers)
+- [x] Subscription plans display
+- [x] System status health check
+- [x] Admin action cards (user management, GDPR reports, analytics)
+
+### Enhanced Home Page
+- [x] Testimonials section with 3 user reviews and star ratings
+- [x] FAQ accordion section with 6 questions
+- [x] 4-column footer with platform links, legal links, contact info
+- [x] "Atsauksmes" nav link
+- [x] Updated features grid (7 features including Analytics)
+- [x] Telegram paziņojumi in candidate CTA feature list
+- [x] Analytics un pārskati in employer CTA feature list
+- [x] GDPR status indicator in footer
