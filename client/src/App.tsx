@@ -21,11 +21,13 @@ import TermsOfService from "./pages/TermsOfService";
 import CookieConsent from "./components/CookieConsent";
 import Analytics from "./pages/Analytics";
 import AdminPanel from "./pages/AdminPanel";
+import DemoJobs from "./pages/DemoJobs";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/demo/vakances" component={DemoJobs} />
       <Route path="/onboarding" component={Onboarding} />
       {/* Candidate routes */}
       <Route path="/kandidats" component={CandidateDashboard} />
@@ -56,7 +58,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <CookieConsent />

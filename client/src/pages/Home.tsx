@@ -124,6 +124,11 @@ export default function Home() {
             <Button size="lg" variant="outline" className="border-border/60 text-base px-8" asChild>
               <Link href="/cenas">{t("home.viewPricing")} <ArrowRight className="w-4 h-4 ml-2" /></Link>
             </Button>
+            <Button size="lg" variant="outline" className="border-primary/40 text-primary hover:bg-primary/5 text-base px-8" asChild>
+              <Link href="/demo/vakances">
+                <Search className="w-4 h-4 mr-2" />Demo vakances
+              </Link>
+            </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-6">{t("home.heroBadgeBottom")}</p>
         </div>
