@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import {
   Sparkles, BriefcaseIcon, Users, Shield, Zap, MessageSquare,
   EyeOff, CheckCircle, ArrowRight, Star, ChevronDown, ChevronUp,
@@ -78,6 +79,8 @@ export default function Home() {
             <Link href="/cenas" className="hover:text-foreground transition-colors">{t("nav.pricing")}</Link>
           </div>
           <div className="flex items-center gap-2">
+            {/* Theme Switcher */}
+            <ThemeSwitcher />
             {/* Language Switcher */}
             <LanguageSwitcher />
 
